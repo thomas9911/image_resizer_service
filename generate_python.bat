@@ -1,0 +1,1 @@
+python -m grpc_tools.protoc -I .\proto\helloworld\ --python_out=client --grpc_python_out=client .\proto\helloworld\helloworld.proto

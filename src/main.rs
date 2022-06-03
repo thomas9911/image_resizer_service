@@ -48,7 +48,6 @@ impl Resizer for MyResizer {
 }
 
 fn validate_request(request: Request<ResizeRequest>) -> Result<ResizeRequest, ()> {
-    println!("{:?}", request.get_ref());
     match request.into_inner() {
         ResizeRequest {
             input,
@@ -86,7 +85,7 @@ impl MyResizer {
             .send()
             .await
         {
-            let image_fmt = image::ImageFormat::from_mime_type(content_type)
+            let image_fmt = image::ImageFormat::from_mime_type(&content_type)
                 .ok_or(String::from("invalid image type"))?;
             let image: Result<image::DynamicImage, String> = body
                 .collect()
@@ -105,7 +104,8 @@ impl MyResizer {
                 FilterType::Lanczos3
             };
 
-            let new_image = image.resize_exact(request.width, request.height, filter_type);
+            let new_image = image.resize(request.width, request.height, filter_type);
+            // let new_image = image.resize_exact(request.width, request.height, filter_type);
 
             let mut bytes: Vec<u8> = Vec::new();
             new_image
@@ -117,12 +117,13 @@ impl MyResizer {
                 .bucket(&request.bucket)
                 .key(request.output)
                 .body(bytes.into())
+                .content_type(content_type)
                 .send()
                 .await
                 .map_err(|e| e.to_string())?;
 
             Ok(hello_world::ResizeReply {
-                message: format!("Works! with content type {image_fmt:?}",),
+                message: format!("Works! with content type {:?}", image_fmt),
                 status: ReplyStatus::Ok as i32,
             })
         } else {
@@ -133,10 +134,10 @@ impl MyResizer {
 
 fn is_larger(image: &image::DynamicImage, width: u32, height: u32) -> bool {
     if image.width() >= width {
-        return true
+        return true;
     };
     if image.height() >= height {
-        return true
+        return true;
     };
     false
 }
