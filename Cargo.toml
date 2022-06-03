@@ -1,0 +1,30 @@
+[package]
+name = "image_resizer_service"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+# tonic
+async-stream = "0.3"
+futures = { version = "0.3", default-features = false, features = ["alloc"] }
+prost = "0.10"
+tokio = { version = "1.0", features = [ "rt-multi-thread", "time", "fs", "macros", "net",] }
+tokio-stream = { version = "0.1", features = ["net"] }
+tonic = { version = "*", features = ["tls", "compression"] }
+tower = { version = "0.4" }
+
+# aws
+aws-config = "0.12.0"
+aws-sdk-s3 = "0.12.0"
+bytes = "*"
+
+
+# image
+image = "*"
+resize = "*"
+
+
+[build-dependencies]
+tonic-build = { version = "*", features = ["prost", "compression"] }
