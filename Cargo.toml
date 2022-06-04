@@ -2,6 +2,11 @@
 name = "image_resizer_service"
 version = "0.1.0"
 edition = "2021"
+description = "gRPC service to resize images from and to s3 storage"
+repository = "https://github.com/thomas9911/image_resizer_service"
+license = "MIT"
+keywords = ["aws", "rpc", "tonic", "image"]
+categories = ["multimedia::images", "web-programming::http-server"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -37,4 +42,4 @@ serde_json = "1.0.81"
 
 
 [build-dependencies]
-tonic-build = { version = "*", features = ["prost", "compression"] }
+tonic-build = { version = "0.7.2", features = ["prost", "compression"] }
