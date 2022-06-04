@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package resizer;
+
+// The greeting service definition.
+service Resizer {
+  // Sends a greeting
+  rpc Resize (ResizeRequest) returns (ResizeReply) {}
+}
+
+// The request message containing the user's name.
+message ResizeRequest {
+  string bucket = 1;
+  string input = 2;
+  string output = 3;
+  uint32 width = 4;
+  uint32 height = 5;
+  bytes config = 9;
+}
+
+// The response message containing the greetings
+message ResizeReply {
+  string message = 1;
+  enum Status {
+    OK = 0;
+    ERROR = 1;
+  } 
+  Status status = 2;
+}

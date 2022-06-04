@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-import helloworld_pb2 as helloworld__pb2
+import resizer_pb2 as resizer__pb2
 
 
 class ResizerStub(object):
@@ -15,9 +15,9 @@ class ResizerStub(object):
             channel: A grpc.Channel.
         """
         self.Resize = channel.unary_unary(
-            "/helloworld.Resizer/Resize",
-            request_serializer=helloworld__pb2.ResizeRequest.SerializeToString,
-            response_deserializer=helloworld__pb2.ResizeReply.FromString,
+            "/resizer.Resizer/Resize",
+            request_serializer=resizer__pb2.ResizeRequest.SerializeToString,
+            response_deserializer=resizer__pb2.ResizeReply.FromString,
         )
 
 
@@ -35,12 +35,12 @@ def add_ResizerServicer_to_server(servicer, server):
     rpc_method_handlers = {
         "Resize": grpc.unary_unary_rpc_method_handler(
             servicer.Resize,
-            request_deserializer=helloworld__pb2.ResizeRequest.FromString,
-            response_serializer=helloworld__pb2.ResizeReply.SerializeToString,
+            request_deserializer=resizer__pb2.ResizeRequest.FromString,
+            response_serializer=resizer__pb2.ResizeReply.SerializeToString,
         ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-        "helloworld.Resizer", rpc_method_handlers
+        "resizer.Resizer", rpc_method_handlers
     )
     server.add_generic_rpc_handlers((generic_handler,))
 
@@ -65,9 +65,9 @@ class Resizer(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            "/helloworld.Resizer/Resize",
-            helloworld__pb2.ResizeRequest.SerializeToString,
-            helloworld__pb2.ResizeReply.FromString,
+            "/resizer.Resizer/Resize",
+            resizer__pb2.ResizeRequest.SerializeToString,
+            resizer__pb2.ResizeReply.FromString,
             options,
             channel_credentials,
             insecure,
