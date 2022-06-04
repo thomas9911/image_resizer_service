@@ -1,22 +1,15 @@
 use crate::proto::resize_reply::Status as ReplyStatus;
-use crate::proto::resizer_server::{Resizer, ResizerServer};
+use crate::proto::resizer_server::Resizer;
 use crate::proto::{ResizeReply, ResizeRequest};
 use crate::ResizerConfig;
 use crate::S3Config;
 use aes_gcm::aead::{Aead, NewAead};
-use aes_gcm::{Aes256Gcm, Key, Nonce};
-use aws_config::meta::region::RegionProviderChain;
+use aes_gcm::{Aes256Gcm, Nonce};
 use aws_sdk_s3::output::GetObjectOutput;
 use aws_sdk_s3::Client;
-use aws_sdk_s3::Region;
-use aws_sdk_s3::{Credentials, Endpoint};
-use derivative::Derivative;
 use image::imageops::FilterType;
-use once_cell::sync::Lazy;
-use serde::{Deserialize, Serialize};
 use std::io::Cursor;
-use tonic::{transport::Server, Request, Response, Status};
-use zeroize::{Zeroize, ZeroizeOnDrop};
+use tonic::{Request, Response, Status};
 
 fn request_error(error: String) -> Result<Response<ResizeReply>, Status> {
     Ok(Response::new(ResizeReply {
@@ -64,9 +57,9 @@ fn validate_request(request: Request<ResizeRequest>) -> Result<ResizeRequest, St
             height,
             width,
             ..
-        } if bucket == ""
-            || input == ""
-            || output == ""
+        } if bucket.is_empty()
+            || input.is_empty()
+            || output.is_empty()
             || height == 0
             || width == 0
             || height > ResizerConfig::max_size()
@@ -74,7 +67,7 @@ fn validate_request(request: Request<ResizeRequest>) -> Result<ResizeRequest, St
         {
             Err(String::from("invalid arguments"))
         }
-        ResizeRequest { config, .. } if config.len() == 0 => Err(String::from("missing config")),
+        ResizeRequest { config, .. } if config.is_empty() => Err(String::from("missing config")),
         other => Ok(other),
     }
 }
@@ -108,7 +101,7 @@ impl MyResizer {
             .await
         {
             let image_fmt = image::ImageFormat::from_mime_type(&content_type)
-                .ok_or(String::from("invalid image type"))?;
+                .ok_or_else(|| String::from("invalid image type"))?;
             let image = body
                 .collect()
                 .await
