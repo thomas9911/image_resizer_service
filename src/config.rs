@@ -12,7 +12,7 @@ static CONFIG: Lazy<ResizerConfig> = Lazy::new(|| {
 
 #[derive(Derivative, Zeroize, ZeroizeOnDrop)]
 #[derivative(Default)]
-/// wrapper around once_cell
+/// wrapper around `once_cell`
 pub struct ResizerConfig {
     #[derivative(Default(value = "\"[::1]:50051\".to_string()"))]
     address: String,
@@ -42,6 +42,7 @@ impl ResizerConfig {
         };
     }
 
+    #[allow(clippy::missing_errors_doc)]
     pub fn address(
     ) -> Result<std::net::SocketAddr, <std::net::SocketAddr as std::str::FromStr>::Err> {
         CONFIG.address.parse()
@@ -51,12 +52,18 @@ impl ResizerConfig {
         CONFIG.max_size
     }
 
+    ///
+    /// # Panics
+    ///
+    /// panics on unset shared key,
+    /// if it is not base64 or if it is of invalid length, 32 bytes
+    ///
     pub fn shared_key() -> Key<<Aes256Gcm as NewAead>::KeySize> {
         let key = CONFIG.shared_key.as_ref().expect("shared key not set");
         let key = base64::decode(key).expect("shared key invalid base64");
         if key.len() != 32 {
             panic!("shared key invalid length")
         };
-        Key::from_slice(&key).to_owned()
+        *Key::from_slice(&key)
     }
 }

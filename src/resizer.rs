@@ -11,18 +11,18 @@ use image::imageops::FilterType;
 use std::io::Cursor;
 use tonic::{Request, Response, Status};
 
-fn request_error(error: String) -> Result<Response<ResizeReply>, Status> {
-    Ok(Response::new(ResizeReply {
+fn request_error(error: String) -> Response<ResizeReply> {
+    Response::new(ResizeReply {
         message: error,
         status: ReplyStatus::Error as i32,
-    }))
+    })
 }
 
 #[derive(Default)]
-pub struct MyResizer {}
+pub struct ResizerService;
 
 #[tonic::async_trait]
-impl Resizer for MyResizer {
+impl Resizer for ResizerService {
     async fn resize(
         &self,
         request: Request<ResizeRequest>,
@@ -31,19 +31,19 @@ impl Resizer for MyResizer {
 
         let inner_request = match validate_request(request) {
             Ok(inner_request) => inner_request,
-            Err(error) => return request_error(error),
+            Err(error) => return Ok(request_error(error)),
         };
 
         let config = match decrypt_config(&inner_request.config) {
             Ok(config) => config,
-            Err(error) => return request_error(error),
+            Err(error) => return Ok(request_error(error)),
         };
 
         let client = config.to_client().await;
 
         match Self::inner_resize(client, inner_request).await {
             Ok(reply) => Ok(Response::new(reply)),
-            Err(error) => request_error(error),
+            Err(error) => Ok(request_error(error)),
         }
     }
 }
@@ -87,7 +87,7 @@ fn decrypt_config(data: &[u8]) -> Result<S3Config, String> {
     Ok(s3_config)
 }
 
-impl MyResizer {
+impl ResizerService {
     async fn inner_resize(client: Client, request: ResizeRequest) -> Result<ResizeReply, String> {
         if let Ok(GetObjectOutput {
             body,
@@ -105,7 +105,7 @@ impl MyResizer {
             let image = body
                 .collect()
                 .await
-                .map(|data| data.into_bytes())
+                .map(aws_sdk_s3::types::AggregatedBytes::into_bytes)
                 .map_err(|e| e.to_string())
                 .and_then(|data| {
                     image::load_from_memory_with_format(&data, image_fmt).map_err(|e| e.to_string())

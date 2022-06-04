@@ -1,11 +1,18 @@
+#![deny(clippy::all)]
+#![warn(clippy::pedantic)]
+#![allow(clippy::similar_names)]
+#![allow(clippy::must_use_candidate)]
+#![allow(clippy::module_name_repetitions)]
+
 use config::ResizerConfig;
 use proto::resizer_server::ResizerServer;
-use resizer::MyResizer;
+use resizer::ResizerService;
 use s3_config::S3Config;
 
 use tonic::transport::Server;
 
 pub mod proto {
+    #![allow(clippy::pedantic)]
     tonic::include_proto!("resizer");
 }
 pub mod config;
@@ -18,7 +25,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let addr = ResizerConfig::address()?;
 
-    let resizer = MyResizer::default();
+    let resizer = ResizerService::default();
 
     println!("ResizerServer listening on {}", addr);
 
