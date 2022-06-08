@@ -4,7 +4,6 @@
 #![warn(clippy::pedantic)]
 #![allow(clippy::multiple_crate_versions)]
 #![allow(clippy::similar_names)]
-#![allow(clippy::must_use_candidate)]
 #![allow(clippy::module_name_repetitions)]
 
 use config::ResizerConfig;

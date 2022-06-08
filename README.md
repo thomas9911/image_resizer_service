@@ -13,3 +13,16 @@ Image formats that `image` crate supports:
 - ICO
 - PNM
 - farbfeld
+
+Easiest is to run with docker-compose:
+
+```sh
+docker-compose up -d
+```
+
+Contains two clients:
+
+- Elixir client
+
+- Python client
+  - Has a Gui

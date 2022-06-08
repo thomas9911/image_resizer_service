@@ -1045,6 +1045,7 @@ dependencies = [
  "image",
  "once_cell",
  "prost",
+ "rand",
  "resize",
  "serde",
  "serde_json",

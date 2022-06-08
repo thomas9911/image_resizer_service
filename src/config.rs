@@ -4,15 +4,11 @@ use derivative::Derivative;
 use once_cell::sync::Lazy;
 use zeroize::{Zeroize, ZeroizeOnDrop};
 
-static CONFIG: Lazy<ResizerConfig> = Lazy::new(|| {
-    let mut config = ResizerConfig::default();
-    config.from_env();
-    config
-});
+static CONFIG: Lazy<ResizerConfig> = Lazy::new(ResizerConfig::init_config);
 
 #[derive(Derivative, Zeroize, ZeroizeOnDrop)]
 #[derivative(Default)]
-/// wrapper around `once_cell`
+/// container for global config and wrapper around `once_cell`
 pub struct ResizerConfig {
     #[derivative(Default(value = "\"[::1]:50051\".to_string()"))]
     address: String,
@@ -22,11 +18,19 @@ pub struct ResizerConfig {
 }
 
 impl ResizerConfig {
+    /// initialize global config and panics on missing required configurations
     pub fn init() {
         Lazy::force(&CONFIG);
-        Self::shared_key();
+        Self::fetch_and_validate_shared_key();
     }
 
+    fn init_config() -> ResizerConfig {
+        let mut config = ResizerConfig::default();
+        config.from_env();
+        config
+    }
+
+    /// Gather info from env variables
     pub fn from_env(&mut self) {
         if let Ok(var) = std::env::var("IMAGE_RESIZER_ADDRESS") {
             self.address = var;
@@ -42,12 +46,17 @@ impl ResizerConfig {
         };
     }
 
-    #[allow(clippy::missing_errors_doc)]
+    ///
+    /// # Errors
+    ///
+    /// Returns error when address is not a valid address
+    ///
     pub fn address(
     ) -> Result<std::net::SocketAddr, <std::net::SocketAddr as std::str::FromStr>::Err> {
         CONFIG.address.parse()
     }
 
+    #[must_use]
     pub fn max_size() -> u32 {
         CONFIG.max_size
     }
@@ -56,14 +65,32 @@ impl ResizerConfig {
     /// # Panics
     ///
     /// panics on unset shared key,
-    /// if it is not base64 or if it is of invalid length, 32 bytes
+    /// if it is not base64 or if it is of invalid length, other than 32 bytes
     ///
+    #[must_use]
     pub fn shared_key() -> Key<<Aes256Gcm as NewAead>::KeySize> {
+        let key = Self::fetch_and_validate_shared_key();
+        *Key::from_slice(&key)
+    }
+
+    fn fetch_and_validate_shared_key() -> Vec<u8> {
         let key = CONFIG.shared_key.as_ref().expect("shared key not set");
         let key = base64::decode(key).expect("shared key invalid base64");
         if key.len() != 32 {
             panic!("shared key invalid length")
         };
-        *Key::from_slice(&key)
+        key
+    }
+
+    #[must_use]
+    pub fn generate_shared_key() -> String {
+        use rand::RngCore;
+
+        let mut key: [u8; 32] = [0; 32];
+        let mut generator = rand::thread_rng();
+
+        generator.fill_bytes(&mut key);
+
+        base64::encode(key)
     }
 }

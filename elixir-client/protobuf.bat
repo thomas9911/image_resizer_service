@@ -1,0 +1,1 @@
+.\protoc.exe -I ..\proto\resizer --elixir_out=gen_descriptors=true,plugins=grpc:.\priv\proto ..\proto\resizer\resizer.proto

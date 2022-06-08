@@ -7,6 +7,7 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 import json
 import base64
 import os
+import datetime
 
 SHARED_SECRET = b"kqB7xA9RUVsuWlud89+wLJGqznMZIbKqTznEzn0N7u4="
 ACCESS_KEY = "test_key_id"
@@ -65,6 +66,7 @@ def gui(stub):
         pixel_valid_maker(window, values, event, "-HEIGHT-")
 
         if event == "Resize":
+            before = datetime.datetime.utcnow()
             response = stub.Resize(
                 resizer_pb2.ResizeRequest(
                     input=values["-INPUT-"],
@@ -75,6 +77,9 @@ def gui(stub):
                     config=encode_config(make_config()),
                 )
             )
+            after = datetime.datetime.utcnow()
+            diff = (after - before)
+            print(f"Processed in: {diff.seconds} s and {diff.microseconds / 1000} ms")
             print("Client received: " + response.message)
 
     window.close()

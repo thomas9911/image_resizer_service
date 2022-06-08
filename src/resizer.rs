@@ -4,8 +4,9 @@ use crate::proto::{ResizeReply, ResizeRequest};
 use crate::ResizerConfig;
 use crate::S3Config;
 use aes_gcm::aead::{Aead, NewAead};
-use aes_gcm::{Aes256Gcm, Nonce};
+use aes_gcm::{Aes256Gcm, Key, Nonce};
 use aws_sdk_s3::output::GetObjectOutput;
+use aws_sdk_s3::types::AggregatedBytes;
 use aws_sdk_s3::Client;
 use image::imageops::FilterType;
 use std::io::Cursor;
@@ -34,7 +35,7 @@ impl Resizer for ResizerService {
             Err(error) => return Ok(request_error(error)),
         };
 
-        let config = match decrypt_config(&inner_request.config) {
+        let config = match decrypt_config(&inner_request.config, &ResizerConfig::shared_key()) {
             Ok(config) => config,
             Err(error) => return Ok(request_error(error)),
         };
@@ -72,7 +73,10 @@ fn validate_request(request: Request<ResizeRequest>) -> Result<ResizeRequest, St
     }
 }
 
-fn decrypt_config(data: &[u8]) -> Result<S3Config, String> {
+fn decrypt_config(
+    data: &[u8],
+    key: &Key<<Aes256Gcm as NewAead>::KeySize>,
+) -> Result<S3Config, String> {
     if data.len() < 12 {
         return Err(String::from("invalid config"));
     };
@@ -80,11 +84,10 @@ fn decrypt_config(data: &[u8]) -> Result<S3Config, String> {
     let (iv, bytes) = data.split_at(12);
     let nonce = Nonce::from_slice(iv);
 
-    let cipher = Aes256Gcm::new(&ResizerConfig::shared_key());
+    let cipher = Aes256Gcm::new(key);
     let plaintext = cipher.decrypt(nonce, bytes).map_err(|e| e.to_string())?;
 
-    let s3_config: S3Config = serde_json::from_slice(&plaintext).map_err(|e| e.to_string())?;
-    Ok(s3_config)
+    S3Config::from_json(&plaintext).map_err(|e| e.to_string())
 }
 
 impl ResizerService {
@@ -105,7 +108,7 @@ impl ResizerService {
             let image = body
                 .collect()
                 .await
-                .map(aws_sdk_s3::types::AggregatedBytes::into_bytes)
+                .map(AggregatedBytes::into_bytes)
                 .map_err(|e| e.to_string())
                 .and_then(|data| {
                     image::load_from_memory_with_format(&data, image_fmt).map_err(|e| e.to_string())
@@ -153,4 +156,54 @@ fn needs_upscale(image: &image::DynamicImage, width: u32, height: u32) -> bool {
         return true;
     };
     false
+}
+
+#[cfg(test)]
+mod decrypt_test {
+    use super::*;
+
+    fn setup(my_config: &S3Config, key: &str) -> Vec<u8> {
+        // client side
+        let plaintext = serde_json::to_vec(&my_config).unwrap();
+        let insecure_iv = [1; 12];
+        let cipher = Aes256Gcm::new(aes_gcm::Key::from_slice(&base64::decode(key).unwrap()));
+        let ciphertext = cipher
+            .encrypt(&insecure_iv.into(), plaintext.as_ref())
+            .unwrap();
+
+        let mut data = Vec::new();
+        data.extend_from_slice(&insecure_iv);
+        data.extend_from_slice(&ciphertext);
+
+        data
+    }
+
+    #[test]
+    fn works() {
+        let my_config = S3Config::default();
+        let key = ResizerConfig::generate_shared_key();
+
+        let data = setup(&my_config, &key);
+
+        // server side
+        let key = *Key::from_slice(&base64::decode(key).unwrap());
+        let out_config = decrypt_config(&data, &key).unwrap();
+
+        assert_eq!(my_config, out_config);
+    }
+
+    #[test]
+    fn invalid_secret_key() {
+        let my_config = S3Config::default();
+        let in_key = ResizerConfig::generate_shared_key();
+        let out_key = ResizerConfig::generate_shared_key();
+
+        let data = setup(&my_config, &in_key);
+
+        // server side
+        let key = *Key::from_slice(&base64::decode(out_key).unwrap());
+        let out_config = decrypt_config(&data, &key);
+
+        assert_eq!(Err("aead::Error".to_string()), out_config);
+    }
 }

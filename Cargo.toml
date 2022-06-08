@@ -1,45 +1,44 @@
 [package]
-name = "image_resizer_service"
-version = "0.1.0"
-edition = "2021"
-description = "gRPC service to resize images from and to s3 storage"
-repository = "https://github.com/thomas9911/image_resizer_service"
-license = "MIT"
-keywords = ["aws", "rpc", "tonic", "image"]
 categories = ["multimedia::images", "web-programming::http-server"]
+description = "gRPC service to resize images from and to s3 storage"
+edition = "2021"
+keywords = ["aws", "rpc", "tonic", "image"]
+license = "MIT"
+name = "image_resizer_service"
+repository = "https://github.com/thomas9911/image_resizer_service"
+version = "0.1.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 # tonic
 async-stream = "0.3"
-futures = { version = "0.3", default-features = false, features = ["alloc"] }
+futures = {version = "0.3", default-features = false, features = ["alloc"]}
+http = "0.2"
 prost = "0.10"
-tokio = { version = "1.0", features = [ "rt-multi-thread", "time", "fs", "macros", "net",] }
-tokio-stream = { version = "0.1", features = ["net"] }
-tonic = { version = "0.7", features = ["tls", "compression"] }
-tower = { version = "0.4" }
-http = "0.2.7"
+tokio = {version = "1.0", features = ["rt-multi-thread", "time", "fs", "macros", "net"]}
+tokio-stream = {version = "0.1", features = ["net"]}
+tonic = {version = "0.7", features = ["tls", "compression"]}
+tower = "0.4"
 
 # aws
 aws-config = "0.12"
 aws-sdk-s3 = "0.12"
 bytes = "1.1"
 
-
 # image
 image = "0.24"
 resize = "0.7"
 
 # app
-derivative = "2.2.0"
-once_cell = "1.12.0"
-zeroize = { version = "1.5.5", features = ["derive"] }
-base64 = "0.13.0"
-aes-gcm = { version = "0.9.4" }
-serde = { version = "1.0.137", features = ["derive"] }
+aes-gcm = {version = "0.9"}
+base64 = "0.13"
+derivative = "2.2"
+once_cell = "1.12"
+serde = {version = "1.0.137", features = ["derive"]}
 serde_json = "1.0.81"
-
+zeroize = {version = "1.5", features = ["derive"]}
+rand = "0.8.5"
 
 [build-dependencies]
-tonic-build = { version = "0.7.2", features = ["prost", "compression"] }
+tonic-build = {version = "0.7", features = ["prost", "compression"]}

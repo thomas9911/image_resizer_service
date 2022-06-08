@@ -6,7 +6,7 @@ use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use zeroize::{Zeroize, ZeroizeOnDrop};
 
-#[derive(Debug, Derivative, Zeroize, ZeroizeOnDrop, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Derivative, Zeroize, ZeroizeOnDrop, Serialize, Deserialize)]
 #[derivative(Default)]
 pub struct S3Config {
     #[derivative(Default(value = "\"us-east-1\".to_string()"))]
@@ -20,7 +20,7 @@ pub struct S3Config {
 }
 
 impl S3Config {
-    fn endpoint(&self) -> http::Uri {
+    pub fn endpoint(&self) -> http::Uri {
         if let Ok(endpoint) = self.endpoint.parse() {
             endpoint
         } else {
@@ -28,6 +28,19 @@ impl S3Config {
         }
     }
 
+    pub fn region(&self) -> &str {
+        self.region.as_ref()
+    }
+
+    pub fn access_key(&self) -> &str {
+        self.access_key.as_ref()
+    }
+
+    pub fn secret_access_key(&self) -> &str {
+        self.secret_access_key.as_ref()
+    }
+
+    /// Build `aws_sdk_s3::Client` from config
     pub async fn to_client(self) -> Client {
         let region_provider = RegionProviderChain::first_try(Region::new(self.region.to_string()))
             .or_else("us-east-1");
@@ -42,4 +55,69 @@ impl S3Config {
             .await;
         Client::new(&config)
     }
+
+    ///
+    /// # Errors
+    ///
+    /// Returns error when invalid json and missing the required fields
+    ///
+    pub fn from_json(data: &[u8]) -> serde_json::Result<S3Config> {
+        serde_json::from_slice(data)
+    }
+}
+
+#[test]
+fn s3_config_default_test() {
+    let cfg = S3Config::default();
+
+    let expected = http::Uri::from_static("http://127.0.0.1:9000");
+
+    assert_eq!(cfg.endpoint(), expected);
+    assert_eq!(cfg.region(), "us-east-1");
+    assert_eq!(cfg.access_key(), "test_key_id");
+    assert_eq!(cfg.secret_access_key(), "secret_access_key");
+}
+
+#[test]
+fn s3_config_updated_endpoint_test() {
+    let cfg = S3Config {
+        endpoint: String::from("https://assets.example.com"),
+        region: String::new(),
+        access_key: String::new(),
+        secret_access_key: String::new(),
+    };
+
+    let expected = http::Uri::from_static("https://assets.example.com");
+
+    assert_eq!(cfg.endpoint(), expected);
+    assert_eq!(cfg.region(), "");
+    assert_eq!(cfg.access_key(), "");
+    assert_eq!(cfg.secret_access_key(), "");
+}
+
+#[test]
+fn s3_config_from_json_test() {
+    let cfg = S3Config::from_json(
+        br#"{
+        "region": "myregion",
+        "endpoint": "https://assets.example.com",
+        "access_key": "access",
+        "secret_access_key": ""
+    }"#,
+    )
+    .unwrap();
+
+    let expected = http::Uri::from_static("https://assets.example.com");
+
+    assert_eq!(cfg.endpoint(), expected);
+    assert_eq!(cfg.region(), "myregion");
+    assert_eq!(cfg.access_key(), "access");
+    assert_eq!(cfg.secret_access_key(), "");
+}
+
+#[test]
+fn s3_config_from_empty_json_test() {
+    let cfg = S3Config::from_json(br#"{ }"#);
+
+    assert!(cfg.is_err());
 }
