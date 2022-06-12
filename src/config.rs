@@ -12,6 +12,8 @@ static CONFIG: Lazy<ResizerConfig> = Lazy::new(ResizerConfig::init_config);
 pub struct ResizerConfig {
     #[derivative(Default(value = "\"[::1]:50051\".to_string()"))]
     address: String,
+    #[derivative(Default(value = "\"[::1]:50052\".to_string()"))]
+    binary_address: String,
     #[derivative(Default(value = "4000"))]
     max_size: u32,
     shared_key: Option<String>,
@@ -35,6 +37,9 @@ impl ResizerConfig {
         if let Ok(var) = std::env::var("IMAGE_RESIZER_ADDRESS") {
             self.address = var;
         };
+        if let Ok(var) = std::env::var("IMAGE_RESIZER_BINARY_ADDRESS") {
+            self.binary_address = var;
+        };
         if let Ok(var) = std::env::var("IMAGE_RESIZER_MAX_SIZE") {
             if let Ok(var) = var.parse() {
                 self.max_size = var;
@@ -54,6 +59,16 @@ impl ResizerConfig {
     pub fn address(
     ) -> Result<std::net::SocketAddr, <std::net::SocketAddr as std::str::FromStr>::Err> {
         CONFIG.address.parse()
+    }
+
+    ///
+    /// # Errors
+    ///
+    /// Returns error when address is not a valid address
+    ///
+    pub fn binary_address(
+    ) -> Result<std::net::SocketAddr, <std::net::SocketAddr as std::str::FromStr>::Err> {
+        CONFIG.binary_address.parse()
     }
 
     #[must_use]

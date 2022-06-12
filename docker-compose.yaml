@@ -6,6 +6,7 @@ services:
       dockerfile: "Dockerfile"
     environment:
       - IMAGE_RESIZER_ADDRESS=0.0.0.0:50051
+      - IMAGE_RESIZER_BINARY_ADDRESS=0.0.0.0:50052
       - IMAGE_RESIZER_SHARED_KEY=kqB7xA9RUVsuWlud89+wLJGqznMZIbKqTznEzn0N7u4=
   client:
     build:
@@ -13,6 +14,7 @@ services:
       dockerfile: "Dockerfile"
     environment:
       - IMAGE_RESIZER_ADDRESS=server:50051
+      - IMAGE_RESIZER_BINARY_ADDRESS=server:50052
       - IMAGE_RESIZER_SHARED_KEY=kqB7xA9RUVsuWlud89+wLJGqznMZIbKqTznEzn0N7u4=
       - ASSET_ADDRESS=http://minio:9000
       - ASSET_REGION=us-east-1

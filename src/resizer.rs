@@ -8,8 +8,6 @@ use aes_gcm::{Aes256Gcm, Key, Nonce};
 use aws_sdk_s3::output::GetObjectOutput;
 use aws_sdk_s3::types::AggregatedBytes;
 use aws_sdk_s3::Client;
-use image::imageops::FilterType;
-use std::io::Cursor;
 use tonic::{Request, Response, Status};
 
 fn request_error(error: String) -> Response<ResizeReply> {
@@ -114,19 +112,7 @@ impl ResizerService {
                     image::load_from_memory_with_format(&data, image_fmt).map_err(|e| e.to_string())
                 })?;
 
-            let filter_type = if needs_upscale(&image, request.width, request.height) {
-                FilterType::CatmullRom
-            } else {
-                FilterType::Lanczos3
-            };
-
-            let new_image = image.resize(request.width, request.height, filter_type);
-            // let new_image = image.resize_exact(request.width, request.height, filter_type);
-
-            let mut bytes: Vec<u8> = Vec::new();
-            new_image
-                .write_to(&mut Cursor::new(&mut bytes), image_fmt)
-                .map_err(|e| e.to_string())?;
+            let bytes = crate::image::resize(&image, image_fmt, request.width, request.height)?;
 
             client
                 .put_object()
@@ -148,15 +134,15 @@ impl ResizerService {
     }
 }
 
-fn needs_upscale(image: &image::DynamicImage, width: u32, height: u32) -> bool {
-    if image.width() >= width {
-        return true;
-    };
-    if image.height() >= height {
-        return true;
-    };
-    false
-}
+// fn needs_upscale(image: &image::DynamicImage, width: u32, height: u32) -> bool {
+//     if image.width() >= width {
+//         return true;
+//     };
+//     if image.height() >= height {
+//         return true;
+//     };
+//     false
+// }
 
 #[cfg(test)]
 mod decrypt_test {

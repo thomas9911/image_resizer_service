@@ -2,13 +2,10 @@ syntax = "proto3";
 
 package resizer;
 
-// The greeting service definition.
 service Resizer {
-  // Sends a greeting
   rpc Resize (ResizeRequest) returns (ResizeReply) {}
 }
 
-// The request message containing the user's name.
 message ResizeRequest {
   string bucket = 1;
   string input = 2;
@@ -18,7 +15,6 @@ message ResizeRequest {
   bytes config = 9;
 }
 
-// The response message containing the greetings
 message ResizeReply {
   string message = 1;
   enum Status {
@@ -26,4 +22,25 @@ message ResizeReply {
     ERROR = 1;
   } 
   Status status = 2;
+}
+
+service ResizerBinary {
+  rpc ResizeBinary (ResizeBinaryRequest) returns (ResizeBinaryReply) {}
+}
+
+message ResizeBinaryRequest {
+  string format = 1;
+  uint32 width = 4;
+  uint32 height = 5;
+  bytes image = 9;
+}
+
+message ResizeBinaryReply {
+  string message = 1;
+  enum Status {
+    OK = 0;
+    ERROR = 1;
+  } 
+  Status status = 2;
+  bytes image = 9;
 }

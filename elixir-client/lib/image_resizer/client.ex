@@ -40,7 +40,8 @@ defmodule ImageResizer.Client do
       |> Map.put(:nonce, Base.encode16(:crypto.strong_rand_bytes(16)))
       |> Jason.encode!()
 
-    {text, tag} = :crypto.crypto_one_time_aead(:aes_256_gcm, shared_key(), iv, plaintext, <<>>, true)
+    {text, tag} =
+      :crypto.crypto_one_time_aead(:aes_256_gcm, shared_key(), iv, plaintext, <<>>, true)
 
     :erlang.iolist_to_binary([iv, text, tag])
   end
