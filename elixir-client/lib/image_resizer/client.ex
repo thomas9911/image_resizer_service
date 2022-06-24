@@ -3,14 +3,15 @@ defmodule ImageResizer.Client do
     GRPC.Stub.connect(address())
   end
 
-  def resize(bucket, input, output, width, height) do
+  def resize(bucket, input, output, width, height, method \\ :fill) do
     request =
       make_request(
         bucket,
         input,
         output,
         width,
-        height
+        height,
+        method
       )
 
     case connect() do
@@ -19,7 +20,7 @@ defmodule ImageResizer.Client do
     end
   end
 
-  def make_request(bucket, input, output, width, height) do
+  def make_request(bucket, input, output, width, height, method) do
     config = make_config()
 
     Resizer.ResizeRequest.new(
@@ -28,6 +29,7 @@ defmodule ImageResizer.Client do
       output: output,
       width: width,
       height: height,
+      method: to_method(method),
       config: config
     )
   end
@@ -47,7 +49,7 @@ defmodule ImageResizer.Client do
   end
 
   def address do
-    Application.get_env(:image_resizer, :address, "server:50051")
+    Application.get_env(:image_resizer, :address, "server:50051") |> IO.inspect()
   end
 
   def shared_key do
@@ -63,4 +65,10 @@ defmodule ImageResizer.Client do
       secret_access_key: Application.fetch_env!(:image_resizer, :secret_key)
     }
   end
+
+  defp to_method(:fill), do: :FILL
+  defp to_method(:fit), do: :FIT
+  defp to_method(:limit), do: :LIMIT
+  defp to_method(:PAD), do: :PAD
+  defp to_method(method), do: method
 end

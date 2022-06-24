@@ -1,3 +1,50 @@
+defmodule Resizer.ResizeMethod do
+  @moduledoc false
+  use Protobuf, enum: true, protoc_gen_elixir_version: "0.10.0", syntax: :proto3
+
+  def descriptor do
+    # credo:disable-for-next-line
+    %Google.Protobuf.EnumDescriptorProto{
+      __unknown_fields__: [],
+      name: "ResizeMethod",
+      options: nil,
+      reserved_name: [],
+      reserved_range: [],
+      value: [
+        %Google.Protobuf.EnumValueDescriptorProto{
+          __unknown_fields__: [],
+          name: "FILL",
+          number: 0,
+          options: nil
+        },
+        %Google.Protobuf.EnumValueDescriptorProto{
+          __unknown_fields__: [],
+          name: "FIT",
+          number: 1,
+          options: nil
+        },
+        %Google.Protobuf.EnumValueDescriptorProto{
+          __unknown_fields__: [],
+          name: "LIMIT",
+          number: 2,
+          options: nil
+        },
+        %Google.Protobuf.EnumValueDescriptorProto{
+          __unknown_fields__: [],
+          name: "PAD",
+          number: 3,
+          options: nil
+        }
+      ]
+    }
+  end
+
+  field(:FILL, 0)
+  field(:FIT, 1)
+  field(:LIMIT, 2)
+  field(:PAD, 3)
+end
+
 defmodule Resizer.ResizeReply.Status do
   @moduledoc false
   use Protobuf, enum: true, protoc_gen_elixir_version: "0.10.0", syntax: :proto3
@@ -150,6 +197,20 @@ defmodule Resizer.ResizeRequest do
           __unknown_fields__: [],
           default_value: nil,
           extendee: nil,
+          json_name: "method",
+          label: :LABEL_OPTIONAL,
+          name: "method",
+          number: 6,
+          oneof_index: nil,
+          options: nil,
+          proto3_optional: nil,
+          type: :TYPE_ENUM,
+          type_name: ".resizer.ResizeMethod"
+        },
+        %Google.Protobuf.FieldDescriptorProto{
+          __unknown_fields__: [],
+          default_value: nil,
+          extendee: nil,
           json_name: "config",
           label: :LABEL_OPTIONAL,
           name: "config",
@@ -175,6 +236,7 @@ defmodule Resizer.ResizeRequest do
   field(:output, 3, type: :string)
   field(:width, 4, type: :uint32)
   field(:height, 5, type: :uint32)
+  field(:method, 6, type: Resizer.ResizeMethod, enum: true)
   field(:config, 9, type: :bytes)
 end
 
@@ -312,6 +374,20 @@ defmodule Resizer.ResizeBinaryRequest do
           __unknown_fields__: [],
           default_value: nil,
           extendee: nil,
+          json_name: "method",
+          label: :LABEL_OPTIONAL,
+          name: "method",
+          number: 6,
+          oneof_index: nil,
+          options: nil,
+          proto3_optional: nil,
+          type: :TYPE_ENUM,
+          type_name: ".resizer.ResizeMethod"
+        },
+        %Google.Protobuf.FieldDescriptorProto{
+          __unknown_fields__: [],
+          default_value: nil,
+          extendee: nil,
           json_name: "image",
           label: :LABEL_OPTIONAL,
           name: "image",
@@ -335,6 +411,7 @@ defmodule Resizer.ResizeBinaryRequest do
   field(:format, 1, type: :string)
   field(:width, 4, type: :uint32)
   field(:height, 5, type: :uint32)
+  field(:method, 6, type: Resizer.ResizeMethod, enum: true)
   field(:image, 9, type: :bytes)
 end
 

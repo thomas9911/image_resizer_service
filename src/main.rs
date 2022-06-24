@@ -21,6 +21,8 @@ pub mod proto {
     #![allow(clippy::pedantic)]
     tonic::include_proto!("resizer");
 }
+
+
 pub mod config;
 pub mod image;
 pub mod resizer;

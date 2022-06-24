@@ -6,12 +6,20 @@ service Resizer {
   rpc Resize (ResizeRequest) returns (ResizeReply) {}
 }
 
+enum ResizeMethod {
+  FILL = 0;
+  FIT = 1;
+  LIMIT = 2;
+  PAD = 3;
+}
+
 message ResizeRequest {
   string bucket = 1;
   string input = 2;
   string output = 3;
   uint32 width = 4;
   uint32 height = 5;
+  ResizeMethod method = 6;
   bytes config = 9;
 }
 
@@ -32,6 +40,7 @@ message ResizeBinaryRequest {
   string format = 1;
   uint32 width = 4;
   uint32 height = 5;
+  ResizeMethod method = 6;
   bytes image = 9;
 }
 
