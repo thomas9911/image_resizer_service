@@ -3,7 +3,7 @@ defmodule ImageResizer do
   Documentation for `ImageResizer`.
   """
 
-  defdelegate resize(bucket, input, output, width, height), to: ImageResizer.Client
+  defdelegate resize(bucket, input, output, width, height, method), to: ImageResizer.Client
 end
 
 # ImageResizer.resize("hallo", "falcon_4.jpg", "byex.jpg", 100, 100)

@@ -8,6 +8,10 @@ services:
       - IMAGE_RESIZER_ADDRESS=0.0.0.0:50051
       - IMAGE_RESIZER_BINARY_ADDRESS=0.0.0.0:50052
       - IMAGE_RESIZER_SHARED_KEY=kqB7xA9RUVsuWlud89+wLJGqznMZIbKqTznEzn0N7u4=
+    volumes:
+      - ./build.rs:/app/build.rs
+      - ./proto:/app/proto
+      - ./src:/app/src
   client:
     build:
       context: "elixir-client"
@@ -20,7 +24,9 @@ services:
       - ASSET_REGION=us-east-1
       - ASSET_ACCESS_KEY=test_key_id
       - ASSET_SECRET_KEY=secret_access_key
-
+    volumes:
+      - ./elixir-client/lib:/app/lib
+      - ./elixir-client/priv:/app/priv
   minio:
     image: bitnami/minio:latest
     environment:

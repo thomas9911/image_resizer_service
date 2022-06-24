@@ -1,7 +1,7 @@
+use crate::config::ResizerConfig;
 use crate::proto::resize_binary_reply::Status as ReplyStatus;
 use crate::proto::resizer_binary_server::ResizerBinary;
-use crate::proto::{ResizeBinaryReply, ResizeBinaryRequest};
-use crate::config::ResizerConfig;
+use crate::proto::{ResizeBinaryReply, ResizeBinaryRequest, ResizeMethod};
 use tonic::{Request, Response, Status};
 
 fn request_error(error: String) -> Response<ResizeBinaryReply> {
@@ -31,7 +31,6 @@ fn validate_request(request: &ResizeBinaryRequest) -> Result<(), String> {
     }
 }
 
-
 #[derive(Default)]
 pub struct ResizerBinaryService;
 
@@ -42,7 +41,6 @@ impl ResizerBinary for ResizerBinaryService {
         request: Request<ResizeBinaryRequest>,
     ) -> Result<Response<ResizeBinaryReply>, Status> {
         println!("Got a request from {:?}", request.remote_addr());
-
 
         match inner_resize(request.get_ref()) {
             Ok(data) => Ok(Response::new(ResizeBinaryReply {
@@ -63,5 +61,11 @@ fn inner_resize(request: &ResizeBinaryRequest) -> Result<Vec<u8>, String> {
 
     let image = image::load_from_memory_with_format(&request.image, image_fmt)
         .map_err(|e| e.to_string())?;
-    crate::image::resize(&image, image_fmt, request.width, request.height)
+    crate::image::resize(
+        &image,
+        image_fmt,
+        request.width,
+        request.height,
+        ResizeMethod::Fill,
+    )
 }

@@ -1,7 +1,7 @@
 #![deny(clippy::all)]
 #![deny(clippy::perf)]
 #![deny(clippy::cargo)]
-#![warn(clippy::pedantic)]
+// #![warn(clippy::pedantic)]
 #![allow(clippy::multiple_crate_versions)]
 #![allow(clippy::similar_names)]
 #![allow(clippy::module_name_repetitions)]
@@ -21,7 +21,6 @@ pub mod proto {
     #![allow(clippy::pedantic)]
     tonic::include_proto!("resizer");
 }
-
 
 pub mod config;
 pub mod image;

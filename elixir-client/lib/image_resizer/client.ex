@@ -3,6 +3,8 @@ defmodule ImageResizer.Client do
     GRPC.Stub.connect(address())
   end
 
+  # ImageResizer.Client.resize("hallo", "falcon_1.jpg", "plke.jpg", 250, 250)
+
   def resize(bucket, input, output, width, height, method \\ :fill) do
     request =
       make_request(
@@ -69,6 +71,6 @@ defmodule ImageResizer.Client do
   defp to_method(:fill), do: :FILL
   defp to_method(:fit), do: :FIT
   defp to_method(:limit), do: :LIMIT
-  defp to_method(:PAD), do: :PAD
+  defp to_method(:pad), do: :PAD
   defp to_method(method), do: method
 end

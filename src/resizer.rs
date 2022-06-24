@@ -1,6 +1,6 @@
 use crate::proto::resize_reply::Status as ReplyStatus;
 use crate::proto::resizer_server::Resizer;
-use crate::proto::{ResizeReply, ResizeRequest};
+use crate::proto::{ResizeMethod, ResizeReply, ResizeRequest};
 use crate::ResizerConfig;
 use crate::S3Config;
 use aes_gcm::aead::{Aead, NewAead};
@@ -90,6 +90,9 @@ fn decrypt_config(
 
 impl ResizerService {
     async fn inner_resize(client: Client, request: ResizeRequest) -> Result<ResizeReply, String> {
+        let method = ResizeMethod::from_i32(request.method)
+            .ok_or_else(|| String::from("invalid resize method"))?;
+
         if let Ok(GetObjectOutput {
             body,
             content_type: Some(content_type),
@@ -112,7 +115,8 @@ impl ResizerService {
                     image::load_from_memory_with_format(&data, image_fmt).map_err(|e| e.to_string())
                 })?;
 
-            let bytes = crate::image::resize(&image, image_fmt, request.width, request.height)?;
+            let bytes =
+                crate::image::resize(&image, image_fmt, request.width, request.height, method)?;
 
             client
                 .put_object()
