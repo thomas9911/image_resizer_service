@@ -5,5 +5,5 @@ RUN apt install -y python3-pip
 RUN python3 -m pip install grpcio-tools
 RUN mix local.hex --force
 RUN mix escript.install hex protobuf
-COPY ../proto/resizer/resizer.proto resizer.proto 
+COPY ../server/proto/resizer/resizer.proto resizer.proto 
 RUN mkdir out

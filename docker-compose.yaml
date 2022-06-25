@@ -2,16 +2,16 @@ version: "3.8"
 services:
   server:
     build:
-      context: "."
+      context: "server"
       dockerfile: "Dockerfile"
     environment:
       - IMAGE_RESIZER_ADDRESS=0.0.0.0:50051
       - IMAGE_RESIZER_BINARY_ADDRESS=0.0.0.0:50052
       - IMAGE_RESIZER_SHARED_KEY=kqB7xA9RUVsuWlud89+wLJGqznMZIbKqTznEzn0N7u4=
     volumes:
-      - ./build.rs:/app/build.rs
-      - ./proto:/app/proto
-      - ./src:/app/src
+      - ./server/build.rs:/app/build.rs
+      - ./server/src:/app/src
+      - ./server/proto:/app/proto
   client:
     build:
       context: "elixir-client"
