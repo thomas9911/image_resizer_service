@@ -1,11 +1,13 @@
-use image::imageops::overlay;
+use image::imageops;
 use image::imageops::FilterType;
-use image::DynamicImage;
 use image::GenericImageView;
 use image::ImageFormat;
+use image::{DynamicImage, ImageBuffer};
 
 use crate::proto::ResizeMethod;
 use std::io::Cursor;
+
+const PAD_PIXEL: [u8; 3] = [u8::MAX; 3];
 
 pub fn resize(
     image: &DynamicImage,
@@ -34,8 +36,18 @@ pub fn resize(
             let width_placement = width.saturating_sub(sub_width as u32) / 2;
             let height_placement = height.saturating_sub(sub_height as u32) / 2;
 
-            let mut out_image = image::DynamicImage::new_rgba8(width, height);
-            overlay(
+            let mut out_image = if image.color().has_alpha() {
+                image::DynamicImage::new_rgba8(width, height)
+            } else {
+                // create white image
+                DynamicImage::ImageRgb8(ImageBuffer::from_pixel(
+                    width,
+                    height,
+                    image::Rgb::from(PAD_PIXEL),
+                ))
+            };
+
+            imageops::replace(
                 &mut out_image,
                 &sub_image,
                 width_placement as i64,

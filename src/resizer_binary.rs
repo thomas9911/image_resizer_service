@@ -55,17 +55,13 @@ impl ResizerBinary for ResizerBinaryService {
 
 fn inner_resize(request: &ResizeBinaryRequest) -> Result<Vec<u8>, String> {
     validate_request(request)?;
+    let method = ResizeMethod::from_i32(request.method)
+        .ok_or_else(|| String::from("invalid resize method"))?;
 
     let image_fmt = image::ImageFormat::from_mime_type(&request.format)
         .ok_or_else(|| String::from("invalid image type"))?;
 
     let image = image::load_from_memory_with_format(&request.image, image_fmt)
         .map_err(|e| e.to_string())?;
-    crate::image::resize(
-        &image,
-        image_fmt,
-        request.width,
-        request.height,
-        ResizeMethod::Fill,
-    )
+    crate::image::resize(&image, image_fmt, request.width, request.height, method)
 }

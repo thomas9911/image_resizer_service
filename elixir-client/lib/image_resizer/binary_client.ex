@@ -5,11 +5,11 @@ defmodule ImageResizer.BinaryClient do
 
   # ImageResizer.BinaryClient.resize("hallo", "falcon_4.jpg", "plke.jpg", 250, 250)
 
-  def resize(bucket, input, output, width, height) do
-    with {:ok, %{body: body, headers: headers}} <-
+  def resize(bucket, input, output, width, height, method \\ :fill) do
+    with {:ok, %{body: body, headers: headers, status_code: 200}} <-
            bucket |> ExAws.S3.get_object(input) |> ExAws.request(ex_aws_config()),
          {_, format} <- :lists.keyfind("Content-Type", 1, headers),
-         {:ok, reply} <- inner_resize(body, format, width, height),
+         {:ok, reply} <- inner_resize(body, format, width, height, method),
          %Resizer.ResizeBinaryReply{image: image, message: "success", status: :OK} <- reply do
       bucket
       |> ExAws.S3.put_object(output, image, content_type: format)
@@ -17,13 +17,14 @@ defmodule ImageResizer.BinaryClient do
     end
   end
 
-  defp inner_resize(binary, format, width, height) do
+  defp inner_resize(binary, format, width, height, method) do
     request =
       make_request(
         binary,
         format,
         width,
-        height
+        height,
+        method
       )
 
     case connect() do
@@ -32,12 +33,13 @@ defmodule ImageResizer.BinaryClient do
     end
   end
 
-  def make_request(binary, format, width, height) do
+  def make_request(binary, format, width, height, method) do
     Resizer.ResizeBinaryRequest.new(
       image: binary,
       format: format,
       width: width,
-      height: height
+      height: height,
+      method: to_method(method)
     )
   end
 
@@ -70,4 +72,10 @@ defmodule ImageResizer.BinaryClient do
       secret_access_key: Application.fetch_env!(:image_resizer, :secret_key)
     ]
   end
+
+  defp to_method(:fill), do: :FILL
+  defp to_method(:fit), do: :FIT
+  defp to_method(:limit), do: :LIMIT
+  defp to_method(:pad), do: :PAD
+  defp to_method(method), do: method
 end
