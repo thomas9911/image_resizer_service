@@ -22,8 +22,6 @@ pub fn resize(
         FilterType::Lanczos3
     };
 
-    dbg!(&method);
-
     let new_image = match method {
         ResizeMethod::Fill => image.resize_to_fill(width, height, filter_type),
         ResizeMethod::Fit => image.resize(width, height, filter_type),

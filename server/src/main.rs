@@ -6,21 +6,18 @@
 #![allow(clippy::similar_names)]
 #![allow(clippy::module_name_repetitions)]
 
+pub use libresizer::proto;
+
 use tokio::signal;
 
 use config::ResizerConfig;
-use proto::resizer_binary_server::ResizerBinaryServer;
-use proto::resizer_server::ResizerServer;
+use crate::proto::resizer_binary_server::ResizerBinaryServer;
+use crate::proto::resizer_server::ResizerServer;
 use resizer::ResizerService;
 use resizer_binary::ResizerBinaryService;
 use s3_config::S3Config;
 
 use tonic::transport::Server;
-
-pub mod proto {
-    #![allow(clippy::pedantic)]
-    tonic::include_proto!("resizer");
-}
 
 pub mod config;
 pub mod image;
