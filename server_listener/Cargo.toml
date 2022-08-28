@@ -1,0 +1,19 @@
+[package]
+name = "server_listener"
+version = "0.1.0"
+edition = "2021"
+default-run = "server_listener"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+warp = "*"
+
+image = "*"
+
+tokio = { version = "1", features = ["full"] }
+futures = "*"
+
+pretty_env_logger = "*"
+serde = {version = "*", features=["derive"]}
+redis = { version = "0.21.0", features = ["tokio-comp", "aio", "connection-manager"] }
